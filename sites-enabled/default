@@ -1,4 +1,4 @@
-server default {
+server rest {
 
 listen {
 	type = auth
