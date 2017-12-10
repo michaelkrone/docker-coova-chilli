@@ -11,9 +11,7 @@ LABEL \
   org.label-schema.vcs-ref=${VCS_REF} \
   org.label-schema.version=${VERSION}
 
-# ENV CHILLI_PATH_PREFIX /usr/local
-
-RUN apt-get update && apt-get install -y \
+RUN apt-get update -y && apt-get install -y \
   git \
   build-essential \
   libtool \
@@ -29,54 +27,43 @@ RUN apt-get update && apt-get install -y \
   net-tools
 
 # grep git version of coova-chilli and install version 1.4
-RUN git clone --depth 2 https://github.com/coova/coova-chilli.git /tmp/coova-chilli
 WORKDIR /tmp/coova-chilli
+RUN git clone --depth 2 https://github.com/coova/coova-chilli.git .
 RUN git fetch --all --tags --prune && git checkout tags/1.4
 
 # create package
-RUN ./bootstrap && ./configure --prefix=/usr/local \
+RUN ./bootstrap && ./configure --prefix= \
   --enable-miniportal --with-openssl --enable-libjson \
   --enable-useragent --enable-sessionstate --enable-sessionid \
   --enable-chilliredir --enable-binstatusfile --enable-statusfile \
   --disable-static --enable-shared --enable-largelimits \
   --enable-proxyvsa --enable-chilliproxy --enable-chilliradsec --with-poll
-RUN make
-RUN make install
-
-# maybe install package
-# RUN debuild -us -uc -b
-# RUN dpkg -i ../coova-chilli_*.deb
+RUN make && make install
 
 # clean packages
 RUN apt-get purge -y git build-essential libtool autoconf automake gengetopt devscripts debhelper && \
   apt-get autoremove -y && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* && \
-  rm -rf /tmp/src
+  rm -rf /tmp/coova-chilli
 
+RUN useradd -s /sbin/nologin chilli
 
 # put right config
-RUN cp /usr/local/etc/chilli/defaults /usr/local/etc/chilli/config
-COPY chilli-config/default /usr/local/etc/chilli/default
-COPY chilli-config/defaults.conf /usr/local/etc/chilli.conf
-COPY chilli-config/main.conf /usr/local/etc/chilli/
-COPY chilli-config/hs.conf /usr/local/etc/chilli/
-COPY chilli-config/local.conf /usr/local/etc/chilli/
-COPY scripts/ipup.sh /usr/local/etc/chilli/ipup.sh
-RUN chmod 755 /usr/local/etc/chilli/ipup.sh
+# COPY init.d/chilli /etc/init.d/chilli
+COPY chilli-config/* /etc/chilli/
+COPY scripts/* /etc/chilli/
+
+RUN chmod 755 /etc/chilli/ipup.sh
+RUN chown chilli /etc/chilli/*.conf
 
 EXPOSE 3990 4990
 
-# USER chilli
-
-COPY chilli.conf /usr/local/etc/chilli/chilli.conf
-
-# VOLUME /config
-
-# RUN chmod 755 /usr/local/etc/chilli/ipup.sh
 # RUN systemctl enable chilli
 # RUN systemctl start chilli
+RUN update-rc.d chilli defaults
 
-# ENTRYPOINT ["/usr/local/sbin/chilli", "--debug", "--fg"]
-ENTRYPOINT ["/usr/local/etc/init.d/chilli", "start"]
-CMD ["--conf", "/usr/local/etc/chilli/chilli.conf"]
+WORKDIR /
+
+# USER chilli
+CMD ["/sbin/chilli", "--debug", "--fg", "--conf", "/etc/chilli.conf"]
