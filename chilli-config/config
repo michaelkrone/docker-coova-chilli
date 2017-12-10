@@ -32,8 +32,8 @@ HS_DNS2=208.67.220.220
 #   HotSpot settings for simple Captive Portal
 #
 HS_NASID=nas01
-HS_RADIUS=172.20.0.4
-HS_RADIUS2=172.20.0.4
+HS_RADIUS=172.30.0.4
+HS_RADIUS2=172.30.0.4
 # HS_UAMALLOW=www.coova.org
 HS_RADSECRET=testing123    # Set to be your RADIUS shared secret
 HS_UAMSECRET=change-me     # Set to be your UAM secret

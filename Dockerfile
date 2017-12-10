@@ -41,29 +41,34 @@ RUN ./bootstrap && ./configure --prefix= \
 RUN make && make install
 
 # clean packages
-RUN apt-get purge -y git build-essential libtool autoconf automake gengetopt devscripts debhelper && \
+RUN apt-get purge -y \
+  git \
+  build-essential \
+  libtool \
+  autoconf \
+  automake \
+  gengetopt \
+  devscripts \
+  debhelper && \
   apt-get autoremove -y && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/* && \
   rm -rf /tmp/coova-chilli
 
-RUN useradd -s /sbin/nologin chilli
-
 # put right config
-# COPY init.d/chilli /etc/init.d/chilli
 COPY chilli-config/* /etc/chilli/
 COPY scripts/* /etc/chilli/
-
 RUN chmod 755 /etc/chilli/ipup.sh
-RUN chown chilli /etc/chilli/*.conf
 
 EXPOSE 3990 4990
 
-# RUN systemctl enable chilli
-# RUN systemctl start chilli
-RUN update-rc.d chilli defaults
+# RUN update-rc.d chilli defaults
 
 WORKDIR /
 
+# RUN useradd -s /sbin/nologin chilli
+# RUN chown chilli /etc/chilli/*.conf
 # USER chilli
-CMD ["/sbin/chilli", "--debug", "--fg", "--conf", "/etc/chilli.conf"]
+
+# CMD ["/sbin/chilli", "--debug", "--fg", "--conf", "/etc/chilli/chilli.conf"]
+CMD ["tail", "-f", "/dev/null"]
