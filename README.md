@@ -1,8 +1,16 @@
-# wip: CoovaChilly Docker container
-
-* Ubuntu 16.04
-* CoovaChilly 1.4 - http://coova.github.io/CoovaChilli/
+# wip: Freeradius Docker container
 
 ```
-# sudo docker run -ti --privileged --sysctl net.ipv4.ip_forward=1 coova-chilli
+# docker run -ti -P --sysctl net.ipv4.ip_forward=1 --privileged  docker-freeradius:latest
+
+docker network create lan
+docker network create wan
+
+docker create -it -P --net wan  --name radius --sysctl net.ipv4.ip_forward=1 --privileged docker-freeradius:latest
+
+docker network connect lan radius
+
+docker start radius
+
+docker exec -it radius /bin/bash
 ```
