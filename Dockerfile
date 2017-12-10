@@ -12,17 +12,42 @@ LABEL \
   org.label-schema.version=${VERSION}
 
 RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \
-  freeradius \
-  freeradius-utils
+  freeradius-utils \
+  git \
+  # build-essential \
+  # libssl-dev \
+  # libcurl4-openssl-dev \
+  # libjson-c-dev \
+  devscripts \
+  quilt \
+  debhelper \
+  fakeroot \
+  equivs
 
-RUN service freeradius stop
+WORKDIR /tmp/freeradius-server
+
+RUN git clone https://github.com/FreeRADIUS/freeradius-server.git .
+RUN git checkout release_3_0_15
+RUN fakeroot debian/rules clean
+RUN mk-build-deps -ir debian/control
+RUN dpkg-buildpackage -rfakeroot -b -uc
+
+WORKDIR /tmp
+RUN dpkg -i
+
+WORKDIR /
 
 # clean packages
-RUN apt-get autoremove -y && apt-get clean && \
-  rm -rf /var/lib/apt/lists/*
+RUN apt-get purge -y git build-essential && \
+  apt-get autoremove -y && apt-get clean && \
+  rm -rf /var/lib/apt/lists/* && \
+  rm -rf /tmp/freeradius-server
 
+# RUN service freeradius stop
 # put right config
-COPY config/clients.conf /etc/freeradius/
+COPY config/*  /usr/local/etc/freeradius/
+COPY sites-enabled/*  /usr/local/etc/freeradius/sites-enabled/
+COPY mods-enabled/*  /usr/local/etc/freeradius/mods-enabled/
 
 EXPOSE \
   1812/udp \
@@ -31,4 +56,5 @@ EXPOSE \
 
 WORKDIR /
 
-CMD ["freeradius", "-X"]
+# CMD ["freeradius", "-X"]
+CMD ["tail", "-f", "/dev/null"]
