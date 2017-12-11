@@ -11,20 +11,16 @@ LABEL \
   org.label-schema.vcs-ref=${VCS_REF} \
   org.label-schema.version=${VERSION}
 
-RUN apt-get update -y && apt-get install -y \
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y \
   git \
-  build-essential \
-  libtool \
-  autoconf \
-  automake \
-  gengetopt \
-  devscripts \
-  debhelper \
   libssl-dev \
-  iptables \
-  libjson-c-dev \
-  haserl \
-  net-tools
+  ssl-cert \
+  devscripts \
+  quilt \
+  debhelper \
+  fakeroot \
+  equivs
+
 
 # grep git version of coova-chilli and install version 1.4
 WORKDIR /tmp/coova-chilli
